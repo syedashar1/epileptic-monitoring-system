@@ -38,7 +38,7 @@ const BasicTable = ({rows}) => {
                 {row.time}
               </TableCell>
               <TableCell align="right">{row.freq}{' Hz'}</TableCell>
-              <TableCell align="right">{'No Seizure'}</TableCell>
+              <TableCell align="right">{row.status}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -83,45 +83,58 @@ const BasicTable2 = ({rows}) => {
 
 
 export default function MainPage(props) {
-  const [value, setValue] = useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
   const [freqArray, setFreqArray] = useState([])
 
-  const [status, setStatus] = useState('No Seizure')
+  const [status, setStatus] = useState('Not Connected')
   const [lastUpdatedApp, setLastUpdatedApp] = useState(null)
 
   const [user, setUser] = useState(props.user)
   const [currentFreq, setCurrentFreq] = useState(null)
   const [veryLow, setVeryLow] = useState(0)
-  const [updateTime, setUpdateTime] = useState(2000)
+  const [stableFreq, setStableFreq] = useState(0)
+  const [updateTime, setUpdateTime] = useState(7000)
   const [highestReading, setHighestReading] = useState(null)
+  const [freq, setFreq] = useState(1)
+  const [value, setValue] = useState(0);
+  const [timeInterval, setTimeInterval] = useState(0);
+  setTimeout(() => setTimeInterval(timeInterval + 1) , updateTime);
 
-  useEffect(() => {
-     if (veryLow > 4) {
-      // say device not connected
-      setStatus('Not Connected')
-     }
-  }, [veryLow])
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  }
+
+
+
 
   // useEffect(() => {
   //   if(freqArray.length > 200) setFreqArray([])
   // }, [freqArray])
+
+  useEffect(() => {
+    if(stableFreq > 2) setStatus('No Seizure')
+  }, [stableFreq])
   
 
   const update = async () => {
-    // const res = await fetch('https://api.thingspeak.com/channels/1803344/feeds.json?results=2')
-    // const data = await res.json()
-
+    const res = await fetch('https://api.thingspeak.com/channels/1839324/fields/1.json?results=1')
+    const data = await res.json()
+    setFreq( Number(data.feeds[0].field1) / 1000 )
     console.log('getting data from cloud');
     setLastUpdatedApp( new Date().toLocaleString() )
     setFreqArray([...freqArray , {
       time: lastUpdatedApp.split(', ')[1],
-      freq : 1
+      freq : freq,
+      status : status
     }])
+
+
+    if(Number(data.feeds[0].field1) > 400 ){
+      setStableFreq(stableFreq+1)
+    }
+    else{
+      setStatus('Not Connected')
+      setStableFreq(0)
+    }
 
     // // if not connected ie get very low frequency
     // if(ready < something) {
@@ -137,8 +150,7 @@ export default function MainPage(props) {
 
   }
 
-  const [timeInterval, setTimeInterval] = useState(0);
-  setTimeout(() => setTimeInterval(timeInterval + 1) , updateTime);
+
   
   useEffect( () => { 
     update();
@@ -149,9 +161,9 @@ export default function MainPage(props) {
    const handleChangeToggle = (event, newAlignment) => {
      if(!newAlignment) return;
      setAlignment(newAlignment);
-     if(newAlignment === 'Fast') setUpdateTime(1000)
-     else if(newAlignment === 'Medium') setUpdateTime(3000)
-     else if(newAlignment === 'Slow') setUpdateTime(6000)
+     if(newAlignment === 'Fast') setUpdateTime(2000)
+     else if(newAlignment === 'Medium') setUpdateTime(5000)
+     else if(newAlignment === 'Slow') setUpdateTime(14000)
      else if(newAlignment === 'Stop') setUpdateTime(3600000)
      console.log(newAlignment);
    };

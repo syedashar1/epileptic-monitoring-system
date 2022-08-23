@@ -9,8 +9,8 @@ export default function MapLocation() {
   useEffect(() => {
         
         setViewport({
-                latitude: 24.873901,
-                longitude: 67.061645,
+                latitude: 24.9324375,
+                longitude: 67.1126875,
                 width: window.innerWidth < 600 ? `${window.innerWidth - 20}px` : '1000px' ,
                 height: "550px",
                 zoom: 15
@@ -32,8 +32,8 @@ export default function MapLocation() {
       >
             <Marker
             key={1}
-            latitude={24.873901}
-            longitude={67.061645}
+            latitude={24.9324375}
+            longitude={67.1126875}
           >
         <img src = {mark} style={{width:'30px',height:'auto',marginTop:'-25px'}}>
 
